@@ -14,10 +14,13 @@ class Interface:
     def tk_init(self):
         
         self.bazis_entrys = []
-        
-        self.bazis_var.trace_add('write',self.__on_change_checkbox)
-        self.demention.trace_add('write',self.__on_change_scale)
+        self.matrix = []
+        self.columns_process = None
+        self.rows_process = None
 
+        self.bazis_var.trace_add('write',self.__on_change_checkbox)
+        self.demension_columns.trace_add('write', self.__on_change_demension_columns)
+        self.demension_rows.trace_add('write', self.__on_change_demension_rows)
 
     def create_window(self):
         
@@ -65,24 +68,28 @@ class Interface:
         
         
         self.bazis_var = tk.BooleanVar()
-        self.demention = tk.IntVar(value=5)
+        self.demension_columns = tk.IntVar(value=5)
+        self.demension_rows = tk.IntVar(value=5)
 
         self.graph_settings_lbl = ttk.Label(master=self.task_frame, text="Размерность матрицы")
         self.graph_settings_lbl.pack(anchor='nw',padx=10, pady=10)
 
-        self.matrix_scale = tk.Scale(master=self.task_frame, orient='horizontal', length=310, from_=1.0, to=16, variable=self.demention)
-        self.matrix_scale.pack(anchor='nw', padx=15, pady=10)
+        self.matrix_columns = tk.Scale(master=self.task_frame, orient='horizontal', length=310, from_=1, to=16, variable=self.demension_columns)
+        self.matrix_columns.pack(anchor='nw', padx=15, pady=10)
+        
+        self.matrix_rows = tk.Scale(master=self.task_frame, orient="horizontal", length=310, from_=1, to=16, variable=self.demension_rows)
+        self.matrix_rows.pack(anchor='nw', padx=15, pady=0)
 
         self.bazis_checkbutton = tk.Checkbutton(master=self.task_frame, text="Задать базис", variable=self.bazis_var)
         self.bazis_checkbutton.place(anchor='nw', x=450, y=25)
-        
+            
 
         self.root.config(menu=self.main_menu)
 
 
 
 
-    #Entrys for bazis
+    #Entrys for bazis ///////////////////////////////////////////////////////////////////////////
     
     #создает поля ввода для значений базиса, очищает список старых полей
     def __create_entry(self,kolichestvo):
@@ -90,7 +97,7 @@ class Interface:
         for i in range(kolichestvo):
             entry = ttk.Entry(master=self.task_frame, width=4)
             self.bazis_entrys.append(entry)
-            self.condition_entrys()
+        self.condition_entrys()
     
     #удаляет все поля ввода из списка
     def __delete_entrys(self):
@@ -116,16 +123,82 @@ class Interface:
 
     def update_entrys(self):
         self.__delete_entrys()
-        self.__create_entry(self.demention.get())
+        self.__create_entry(self.demension_columns.get())
+
+        #////////////////////////////////////////////////////////////////////////////////////////
+
+    #Entrys matrix for equasion
 
 
-    #коллбек функция, срабатывает при изменении demention
-    def __on_change_scale(self, var, index, mode):
-        self.update_entrys()
+    def __create_matrix(self):
+        cols = self.demension_columns.get()
+        rows = self.demension_rows.get()
+        self.matrix = []
+        for row in range(rows+1):
+            entrys_row = []
+            for col in range(cols):
+                entry = ttk.Entry(master=self.task_frame, width=4)
+                entrys_row.append(entry)
+                entry.place(x=col*40+10,y=row*30+150)
+            self.matrix.append(entrys_row)
+        
+    
+    def __delete_matrix(self):
+        matrix = self.matrix
+        if len(matrix)>0:
+            rows = len(matrix)
+            cols = len(matrix[0])
+            for row in range(rows):
+                for col in range(cols):
+                    self.matrix[row][col].destroy()
+    
+    def update_matrix(self):
+        self.__delete_matrix()
+        self.__create_matrix()
 
+
+    #коллбек функция, срабатывает при изменении demension_columns
+    def __on_change_demension_columns(self, var, index, mode):
+        if self.columns_process is not None:
+            self.root.after_cancel(self.columns_process)
+
+        self.columns_process = self.root.after(500,self.update_entrys)
+
+
+        if self.rows_process is not None:
+            self.root.after_cancel(self.rows_process)
+
+        self.rows_process = self.root.after(500,self.update_matrix)
+
+
+
+
+    def __on_change_demension_rows(self, var, index, mode):
+        if self.rows_process is not None:
+            self.root.after_cancel(self.rows_process)
+
+        self.rows_process = self.root.after(500,self.update_matrix)
+
+
+    
     #коллбек функция, срабатывает при изменении значения bazis_var (чекбокс задать базис)
     def __on_change_checkbox(self, var, index, mode):
         self.condition_entrys()        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Interface()   
