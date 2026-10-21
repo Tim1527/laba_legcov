@@ -1,103 +1,131 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-print(10)
 
-root = tk.Tk()
 
-root.title("Simplex")
-root.geometry('1080x720')
-root.update_idletasks()
 
-# Menu
-main_menu = tk.Menu()
-main_menu.add_cascade(label="Сохранить")
-main_menu.add_cascade(label="Загрузить")
-main_menu.add_cascade(label="Справка")
+class Interface:
+
+    def __init__(self):
+        
+        self.create_window()
+        self.tk_init()
+        self.root.mainloop()
+        
+    def tk_init(self):
+        
+        self.bazis_entrys = []
+        
+        self.bazis_var.trace_add('write',self.__on_change_checkbox)
+        self.demention.trace_add('write',self.__on_change_scale)
+
+
+    def create_window(self):
+        
+    #Создание и настройка главного окна приложения
+        self.root = tk.Tk()
+
+        self.root.title("Simplex")
+        self.root.geometry('1080x720')
+        self.root.update_idletasks()
+
+    # Меню
+        self.main_menu = tk.Menu()
+        self.main_menu.add_cascade(label="Сохранить")
+        self.main_menu.add_cascade(label="Загрузить")
+        self.main_menu.add_cascade(label="Справка")
  
 
-# Main tabs
-tabs = ttk.Notebook()
-tabs.pack(fill='both',side='top', expand=True, padx=5, pady=5)
+    # Main tabs
+        '''
+        Создание трёх вкладок
+        task_frame - вкладка для ввода данных задачи
+        graph_frame - вкладка с графическим решением задачи
+        simplex_frame - вкладка с решением с помощью симплекс метода
+        '''
+
+        self.tabs = ttk.Notebook()
+        self.tabs.pack(fill='both',side='top', expand=True, padx=5, pady=5)
 
 
-task_frame = ttk.Frame(tabs)
-task_frame.pack(expand=True)
-tabs.add(task_frame, text='Задача')
+        self.task_frame = ttk.Frame(self.tabs)
+        self.task_frame.pack(expand=True)
+        self.tabs.add(self.task_frame, text='Задача')
 
 
-graph_frame = ttk.Frame(tabs)
-graph_frame.pack(expand=True)
-tabs.add(graph_frame, text='Графический метод')
+        self.graph_frame = ttk.Frame(self.tabs)
+        self.graph_frame.pack(expand=True)
+        self.tabs.add(self.graph_frame, text='Графический метод')
 
-simplex_frame = ttk.Frame(tabs)
-simplex_frame.pack(expand=True)
-tabs.add(simplex_frame, text='Симплекс метод')
-
-
-# Matrix label
-bazis_var = tk.BooleanVar()
-demention = tk.IntVar(value=5)
-
-graph_settings_lbl = ttk.Label(master=task_frame, text="Размерность матрицы")
-graph_settings_lbl.pack(anchor='nw',padx=10, pady=10)
-
-matrix_scale = tk.Scale(master=task_frame, orient='horizontal', length=310, from_=1.0, to=16, variable=demention)
-matrix_scale.pack(anchor='nw', padx=15, pady=10)
-
-bazis_checkbutton = tk.Checkbutton(master=task_frame, text="Задать базис", variable=bazis_var)
-bazis_checkbutton.place(anchor='nw', x=450, y=25)
+        self.simplex_frame = ttk.Frame(self.tabs)
+        self.simplex_frame.pack(expand=True)
+        self.tabs.add(self.simplex_frame, text='Симплекс метод')
 
 
-#Entrys for bazis
+    # Matrix label - настройки исходной задачи - размерность, и задание базиса
+        
+        
+        self.bazis_var = tk.BooleanVar()
+        self.demention = tk.IntVar(value=5)
 
-bazis_entrys = []
+        self.graph_settings_lbl = ttk.Label(master=self.task_frame, text="Размерность матрицы")
+        self.graph_settings_lbl.pack(anchor='nw',padx=10, pady=10)
 
-def create_entry(kolichestvo):
-    global bazis_entrys
-    bazis_entrys = []
-    for i in range(kolichestvo):
-        entry = ttk.Entry(master=task_frame, width=4)
-        bazis_entrys.append(entry)
-        entry.place(x=i*40+400, y=75)
+        self.matrix_scale = tk.Scale(master=self.task_frame, orient='horizontal', length=310, from_=1.0, to=16, variable=self.demention)
+        self.matrix_scale.pack(anchor='nw', padx=15, pady=10)
+
+        self.bazis_checkbutton = tk.Checkbutton(master=self.task_frame, text="Задать базис", variable=self.bazis_var)
+        self.bazis_checkbutton.place(anchor='nw', x=450, y=25)
+        
+
+        self.root.config(menu=self.main_menu)
 
 
-def delete_entrys(entrys):
-    for entry in entrys:
-        entry.destroy()
+
+
+    #Entrys for bazis
     
-
-def update_entrys():
-    global bazis_entrys
-    delete_entrys(bazis_entrys)
-    create_entry(demention.get())
-
-
-
-def on_change_scale(var, index, mode):
-    if bazis_var.get():
-        update_entrys()
-
-
-def on_change_checkbox(var, index, mode):
-    global bazis_entrys
-    update_entrys()
-    status = bazis_var.get()
-    if status:
-        for i in range(len(bazis_entrys)):
-            bazis_entrys[i].place(x=i*40+400, y=75)
-    else:
-        for i in range(len(bazis_entrys)):
-            bazis_entrys[i].place_forget()
-
-
-
-bazis_var.trace_add('write',on_change_checkbox)
-demention.trace_add('write',on_change_scale)
+    #создает поля ввода для значений базиса, очищает список старых полей
+    def __create_entry(self,kolichestvo):
+        self.bazis_entrys = []
+        for i in range(kolichestvo):
+            entry = ttk.Entry(master=self.task_frame, width=4)
+            self.bazis_entrys.append(entry)
+            self.condition_entrys()
+    
+    #удаляет все поля ввода из списка
+    def __delete_entrys(self):
+        for entry in self.bazis_entrys:
+            entry.destroy()
+   
+   #отрисовывает все поля ввода если поставлена галочка (bazis_var == true) и скрывает их в обратном случае
+    def condition_entrys(self):
+        status = self.bazis_var.get()
+        bazis_entrys = self.bazis_entrys
+        if status:
+            for i in range(len(bazis_entrys)):
+                bazis_entrys[i].place(x=i*40+400, y=75)
+        else:
+            for i in range(len(bazis_entrys)):
+                bazis_entrys[i].place_forget()
 
 
+    '''сначала удаляет все поля ввода а потом создает новые, создавать поля следует только через
+    эту функцию чтобы не потерять доступ к полям ввода из self.bazis_entrys, если вызвать
+    create до delete то список полей обновится и старые поля уже нельзя булет удалить
+    '''
+
+    def update_entrys(self):
+        self.__delete_entrys()
+        self.__create_entry(self.demention.get())
 
 
+    #коллбек функция, срабатывает при изменении demention
+    def __on_change_scale(self, var, index, mode):
+        self.update_entrys()
+
+    #коллбек функция, срабатывает при изменении значения bazis_var (чекбокс задать базис)
+    def __on_change_checkbox(self, var, index, mode):
+        self.condition_entrys()        
 
 
-root.config(menu=main_menu)
-tk.mainloop()
+Interface()   
